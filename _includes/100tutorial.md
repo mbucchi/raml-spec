@@ -25,7 +25,7 @@ As a thoughtful API designer, it's important to consider how your API consumers 
   /books:
 ```
 
-Notice that these resources all begin with a backslash (/). In RAML, this is how you indicate a resource. Any methods and parameters nested under these top level resources belong to and act upon that resource. Now, since each of these resources is a collection of individual objects (specific authors, books, and users), we'll need to define some sub-resources to fill out the collection.
+Notice that these resources all begin with a slash (/). In RAML, this is how you indicate a resource. Any methods and parameters nested under these top level resources belong to and act upon that resource. Now, since each of these resources is a collection of individual objects (specific authors, books, and users), we'll need to define some sub-resources to fill out the collection.
 
 **Nested resources are useful when you want to call out a particular subset of your resource in order to narrow it. For example:**
 
