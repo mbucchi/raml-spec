@@ -1508,9 +1508,12 @@ body {
     display:       inline-block;
   }
 
-  #projects-core-header {
+  .projects-core-header-c {
     width: 250px;
     max-width: 250px;
+    @media (max-width: 640px) {
+      display: none !important;
+    }
   }
 
   .noselect {
@@ -1521,4 +1524,5 @@ body {
     -ms-user-select: none;
     user-select: none;
   }
+
 }

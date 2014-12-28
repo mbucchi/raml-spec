@@ -1904,11 +1904,17 @@ body .github-callout:hover {
   display: inline-block;
 }
 /* line 1511, ../sass/screen.scss */
-.projects2 #projects-core-header {
+.projects2 .projects-core-header-c {
   width: 250px;
   max-width: 250px;
 }
-/* line 1516, ../sass/screen.scss */
+@media (max-width: 640px) {
+  /* line 1511, ../sass/screen.scss */
+  .projects2 .projects-core-header-c {
+    display: none !important;
+  }
+}
+/* line 1519, ../sass/screen.scss */
 .projects2 .noselect {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
