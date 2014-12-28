@@ -1458,3 +1458,67 @@ body {
       }
     }
 }
+
+
+.projects2 {
+
+  ul.tag-list {
+    padding: 10px;
+    li {
+      margin-top: 5px;
+      margin-bottom: 5px;
+    }
+  }
+
+  .tag-button {
+    background-color: #acacac;
+    margin: 15px 5px 0 0;
+    padding: 7px 10px;
+    display: inline-block;
+    text-decoration: none;
+    font: {
+      size: 11px;
+      weight: bold;
+    }
+    line-height: 11px;
+    color: #fff;
+    border-radius: 3px;
+    &.tag-button-normal {
+      cursor: pointer;
+    }
+    &.tag-button-selected {
+      background-color: #0b9be6;
+      cursor: pointer;
+    }
+    &.tag-button-disabled {
+      opacity: 0.5;
+    }
+    -webkit-transition: opacity 300ms ease-in-out;
+    -moz-transition: opacity 300ms ease-in-out;
+    -ms-transition: opacity 300ms ease-in-out;
+    -o-transition: opacity 300ms ease-in-out;
+    transition: opacity 300ms ease-in-out;
+  }
+
+  .tag-counter {
+    min-width:     20px;
+    opacity:       0.4;
+    padding-left:  5px;
+    text-align:    right;
+    display:       inline-block;
+  }
+
+  #projects-core-header {
+    width: 250px;
+    max-width: 250px;
+  }
+
+  .noselect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+}
