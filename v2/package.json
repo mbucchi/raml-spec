@@ -4,6 +4,7 @@
   "private": "true",
   "dependencies": {
     "radioactive": "^1.6.0",
+    "radioactive-html": "0.0.3",
     "underscore": "^1.7.0"
   },
   "devDependencies": {
