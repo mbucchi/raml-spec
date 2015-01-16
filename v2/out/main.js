@@ -44,18 +44,18 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
-	  __hasProp = {}.hasOwnProperty;
+	var __hasProp = {}.hasOwnProperty,
+	  __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 	$(function() {
-	  var Project, draw_tag, projects, radioactive, refresh, serial, serial_cell, split_tags, tag_manager, tag_types, tagman, _;
+	  var Project, radioactive, script, serial, serial_cell, split_tags, tag_manager, tag_types, tagman, _;
 	  if ($('.projects2').length === 0) {
 	    return;
 	  }
-	  radioactive = __webpack_require__(4);
+	  radioactive = __webpack_require__(3);
 	  _ = __webpack_require__(2);
 	  tag_manager = __webpack_require__(1);
-	  __webpack_require__(3)(radioactive, jQuery, window.document);
+	  __webpack_require__(4)(radioactive, jQuery, window.document);
 	  tag_types = {
 	    role: {
 	      label: 'Role'
@@ -94,8 +94,8 @@
 	  serial_cell = radioactive(serial());
 	  tagman = void 0;
 	  Project = (function() {
-	    function Project($e) {
-	      this.$e = $e;
+	    function Project(data) {
+	      this.data = data;
 	      this._id = 'project' + serial();
 	    }
 
@@ -108,103 +108,166 @@
 	    };
 
 	    Project.prototype.tags = function() {
-	      return split_tags(this.$e.data('tags'));
+	      return this._tags != null ? this._tags : this._tags = (function(_this) {
+	        return function() {
+	          var k, v, xx, _ref;
+	          xx = [];
+	          _ref = _this.data.tags;
+	          for (k in _ref) {
+	            if (!__hasProp.call(_ref, k)) continue;
+	            v = _ref[k];
+	            _this.data.tags[k].forEach(function(tag) {
+	              return xx.push(k + ':' + tag);
+	            });
+	          }
+	          return xx;
+	        };
+	      })(this)();
 	    };
 
 	    Project.prototype.refresh = function() {
 	      if (this.is_visible()) {
-	        return this.$e.show();
+	        return $(this.ui()).show();
 	      } else {
-	        return this.$e.hide();
+	        return $(this.ui()).hide();
 	      }
+	    };
+
+	    Project.prototype.ui = function() {
+	      return this._ui != null ? this._ui : this._ui = (function(_this) {
+	        return function() {
+	          var project;
+	          project = _this.data;
+	          return 'li'._(function() {
+	            '.project-title'._(function() {
+	              '.icon'._();
+	              'h3'._(function() {
+	                'a.anchor'._({
+	                  href: '#'
+	                }, function() {
+	                  return 'span'._();
+	                });
+	                return 'text'._(function() {
+	                  if (project['title']) {
+	                    return project['title'];
+	                  } else {
+	                    return project['gh:full_name'].split('/')[1];
+	                  }
+	                });
+	              });
+	              'h4'._('Developed by ' + project.tags['developer']);
+	              if (project.tags['license'] != null) {
+	                'h4 i'._('License: ' + project.tags['license']);
+	              }
+	              'p'._(project.tags['status']);
+	              return 'a.project-github'._({
+	                href: project['id'],
+	                target: '_blank'
+	              }, 'View on Github');
+	            });
+	            return '.project-description p'._(project['description']);
+	          });
+	        };
+	      })(this)();
 	    };
 
 	    return Project;
 
 	  })();
-	  projects = $('ul.projects-source > li').toArray().map(function(x) {
-	    return new Project($(x));
-	  });
-	  (function(config) {
-	    projects.forEach(function(p) {
-	      return config[p.id()] = p.tags();
+	  window._projects_callback = function(data) {
+	    var draw_tag, projects, refresh;
+	    tagman = null;
+	    projects = data.map(function(d) {
+	      return new Project(d);
 	    });
-	    return tagman = tag_manager(config);
-	  })({});
-	  refresh = function() {
-	    return serial_cell(serial());
-	  };
-	  radioactive(function() {
-	    serial_cell();
-	    return projects.forEach(function(p) {
-	      return p.refresh();
-	    });
-	  });
-	  draw_tag = function(tag) {
-	    var count, disabled, selected, state;
-	    selected = function() {
+	    refresh = function() {
+	      return serial_cell(serial());
+	    };
+	    radioactive(function() {
 	      serial_cell();
-	      return __indexOf.call(tagman.selected_tags(), tag) >= 0;
-	    };
-	    count = function() {
-	      serial_cell();
-	      return tagman.count_for_tag(tag);
-	    };
-	    disabled = function() {
-	      return count() === 0;
-	    };
-	    state = function() {
-	      if (selected()) {
-	        return 'selected';
-	      } else if (disabled()) {
-	        return 'disabled';
-	      } else {
-	        return 'normal';
-	      }
-	    };
-	    return 'li.button.tag-button'._({
-	      "class": function() {
-	        return 'tag-button-' + state();
-	      },
-	      _onclick: function() {
-	        if (!disabled()) {
-	          tagman.toggle_tag(tag);
-	          return refresh();
-	        }
-	      }
-	    }, function() {
-	      'span'._(tag.split(':')[1]);
-	      return 'span.tag-counter'._(function() {
-	        if (selected() || disabled()) {
-	          return '';
-	        } else {
-	          return count() + '';
-	        }
+	      return projects.forEach(function(p) {
+	        return p.refresh();
 	      });
 	    });
-	  };
-	  return $('#projects-core-header').append('div'._(function() {
-	    'div'._({
-	      $width: '15px'
-	    }, ' ');
-	    return 'ul.tag-list'._(function() {
-	      var k, v, _results;
-	      _results = [];
-	      for (k in tag_types) {
-	        if (!__hasProp.call(tag_types, k)) continue;
-	        v = tag_types[k];
-	        _results.push((function(k, v) {
-	          'li h4'._(v.label);
-	          return tagman.all_tags().forEach(function(tag) {
-	            if (tag.split(':')[0] === k) {
-	              return draw_tag(tag);
-	            }
-	          });
-	        })(k, v));
-	      }
-	      return _results;
+	    draw_tag = function(tag) {
+	      var count, disabled, selected, state;
+	      selected = function() {
+	        serial_cell();
+	        return __indexOf.call(tagman.selected_tags(), tag) >= 0;
+	      };
+	      count = function() {
+	        serial_cell();
+	        return tagman.count_for_tag(tag);
+	      };
+	      disabled = function() {
+	        return count() === 0;
+	      };
+	      state = function() {
+	        if (selected()) {
+	          return 'selected';
+	        } else if (disabled()) {
+	          return 'disabled';
+	        } else {
+	          return 'normal';
+	        }
+	      };
+	      return 'li.button.tag-button'._({
+	        "class": function() {
+	          return 'tag-button-' + state();
+	        },
+	        _onclick: function() {
+	          if (!disabled()) {
+	            tagman.toggle_tag(tag);
+	            return refresh();
+	          }
+	        }
+	      }, function() {
+	        'span'._(tag.split(':')[1]);
+	        return 'span.tag-counter'._(function() {
+	          if (selected() || disabled()) {
+	            return '';
+	          } else {
+	            return count() + '';
+	          }
+	        });
+	      });
+	    };
+	    (function(config) {
+	      projects.forEach(function(p) {
+	        return config[p.id()] = p.tags();
+	      });
+	      return tagman = tag_manager(config);
+	    })({});
+	    $('#projects-core-header').append('div'._(function() {
+	      'div'._({
+	        $width: '15px'
+	      }, ' ');
+	      return 'ul.tag-list'._(function() {
+	        var k, v, _results;
+	        _results = [];
+	        for (k in tag_types) {
+	          if (!__hasProp.call(tag_types, k)) continue;
+	          v = tag_types[k];
+	          _results.push((function(k, v) {
+	            'li h4'._(v.label);
+	            return tagman.all_tags().forEach(function(tag) {
+	              if (tag.split(':')[0] === k) {
+	                return draw_tag(tag);
+	              }
+	            });
+	          })(k, v));
+	        }
+	        return _results;
+	      });
+	    }));
+	    return projects.forEach(function(project) {
+	      return $('.projects-source').prepend(project.ui());
 	    });
-	  }));
+	  };
+	  script = document.createElement('script');
+	  script.type = 'text/javascript';
+	  script.src = 'https://drive.google.com/uc?export=download&id=0B9LuWXmFpvzWSHlhVG0xbWdMN00';
+	  return $("body").append(script);
 	});
 
 
@@ -260,39 +323,41 @@
 	  };
 
 	  TagManager.prototype.all_tags = function() {
-	    var _this = this;
-	    return this._all_tags != null ? this._all_tags : this._all_tags = (function() {
-	      var id, k, r, t, tags, _i, _len, _ref, _results;
-	      r = {};
-	      _ref = _this.id2tags;
-	      for (id in _ref) {
-	        if (!__hasProp.call(_ref, id)) continue;
-	        tags = _ref[id];
-	        for (_i = 0, _len = tags.length; _i < _len; _i++) {
-	          t = tags[_i];
-	          r[t] = true;
+	    return this._all_tags != null ? this._all_tags : this._all_tags = (function(_this) {
+	      return function() {
+	        var id, k, r, t, tags, _i, _len, _ref, _results;
+	        r = {};
+	        _ref = _this.id2tags;
+	        for (id in _ref) {
+	          if (!__hasProp.call(_ref, id)) continue;
+	          tags = _ref[id];
+	          for (_i = 0, _len = tags.length; _i < _len; _i++) {
+	            t = tags[_i];
+	            r[t] = true;
+	          }
 	        }
-	      }
-	      _results = [];
-	      for (k in r) {
-	        if (!__hasProp.call(r, k)) continue;
-	        _results.push(k);
-	      }
-	      return _results;
-	    })();
+	        _results = [];
+	        for (k in r) {
+	          if (!__hasProp.call(r, k)) continue;
+	          _results.push(k);
+	        }
+	        return _results;
+	      };
+	    })(this)();
 	  };
 
 	  TagManager.prototype.is_visible = function(id) {
-	    var st, tags,
-	      _this = this;
+	    var st, tags;
 	    st = this.selected_tags();
 	    if (st.length === 0) {
 	      return true;
 	    }
 	    tags = this.id2tags[id] || [];
-	    if (!_.every(st, function(x) {
-	      return __indexOf.call(_this.id2tags[id], x) >= 0;
-	    })) {
+	    if (!_.every(st, (function(_this) {
+	      return function(x) {
+	        return __indexOf.call(_this.id2tags[id], x) >= 0;
+	      };
+	    })(this))) {
 	      return false;
 	    }
 	    return true;
@@ -1761,671 +1826,6 @@
 
 /***/ },
 /* 3 */
-/***/ function(module, exports, __webpack_require__) {
-
-	// Generated by CoffeeScript 1.8.0
-	(function() {
-	  module.exports = function(radioactive, jQuery, document) {
-	    var $, apply_props_on_html_node, apply_query_tag, bidibinder, collector, create_collector, create_ext, create_html, cssc, declare_insert_tag, declare_tag, declare_tag_rec, delay, env, ext_comp_innerhtml, ext_get_component_element, helpers, htmltags, interval, is_func, log_err, merge_css_classes, process_bind, reactive_snapshot, rrun, rsub, rsub_html_elm_content, rsub_now, rthp, tag_args_to_props_and_content, tpp, ut, xtype2class, xtypes;
-	    env = __webpack_require__(5);
-	    env.radioactive = function() {
-	      return radioactive;
-	    };
-	    env.jQuery = function() {
-	      return jQuery;
-	    };
-	    env.document = function() {
-	      return document;
-	    };
-	    $ = jQuery;
-	    htmltags = __webpack_require__(11);
-	    create_collector = __webpack_require__(12);
-	    ut = __webpack_require__(13);
-	    xtypes = __webpack_require__(14);
-	    rthp = __webpack_require__(6);
-	    cssc = __webpack_require__(7);
-	    tpp = __webpack_require__(8);
-	    tag_args_to_props_and_content = __webpack_require__(9);
-	    bidibinder = __webpack_require__(15);
-	    helpers = __webpack_require__(10);
-	    interval = ut.interval;
-	    delay = ut.delay;
-	    rsub = function(v, cb) {
-	      if (is_func(v)) {
-	        return radioactive.react(v, function(e, r) {
-	          log_err(e);
-	          return cb(r);
-	        });
-	      } else {
-	        cb(v);
-	        return function() {};
-	      }
-	    };
-	    rsub_now = function(v, cb) {
-	      var r;
-	      r = rrun(v);
-	      cb(r.error, r.result);
-	      return rsub(v, cb);
-	    };
-	    rrun = function(f) {
-	      var e;
-	      try {
-	        return {
-	          result: radioactive.mute(f)()
-	        };
-	      } catch (_error) {
-	        e = _error;
-	        return {
-	          error: e
-	        };
-	      }
-	    };
-	    log_err = function(e) {
-	      ut.err(e);
-	      try {
-	        return window._last_error = e;
-	      } catch (_error) {}
-	    };
-	    reactive_snapshot = function(v) {
-	      if (is_func(v)) {
-	        return radioactive.mute(v)();
-	      } else {
-	        return v;
-	      }
-	    };
-	    is_func = function(v) {
-	      return typeof v === 'function';
-	    };
-	    collector = create_collector();
-	    merge_css_classes = function(head_classes, inline_class_decl, classflags) {
-	      var merged, mfcs;
-	      mfcs = [];
-	      if (head_classes.length > 0) {
-	        mfcs.push([head_classes, true]);
-	      }
-	      if (inline_class_decl != null) {
-	        mfcs.push([inline_class_decl, true]);
-	      }
-	      ut.kv(classflags, function(clazz, flag) {
-	        return mfcs.push([clazz, flag]);
-	      });
-	      merged = cssc.mfc(mfcs);
-	      merged = merged.sort();
-	      return merged.join(' ');
-	    };
-	    ext_comp_innerhtml = function(comp, cb) {
-	      return ut.delay(1, function() {
-	        var key, xxx;
-	        key = '___innerhtml___';
-	        if (comp[key] != null) {
-	          return cb(comp[key]);
-	        } else {
-	          return (xxx = function() {
-	            var $elm;
-	            try {
-	              if (($elm = $(comp.element.dom).find('.x-innerhtml')) != null) {
-	                if ($elm[0] != null) {
-	                  cb(comp[key] = $elm[0]);
-	                  return;
-	                }
-	              }
-	            } catch (_error) {}
-	            return ut.delay(100, xxx);
-	          })();
-	        }
-	      });
-	    };
-	    ext_get_component_element = function(c, cb) {
-	      return ut.delay(1, function() {
-	        var f;
-	        if (c.element != null) {
-	          return cb(c.element);
-	        }
-	        return c.on('initialize', f = function() {
-	          cb(c.element);
-	          return c.un('initialize', f);
-	        });
-	      });
-	    };
-	    apply_props_on_html_node = function($e, props) {
-	      var undos;
-	      undos = [];
-	      props.properties["class"] = (function(c) {
-	        return function() {
-	          return merge_css_classes([], c, props.classflags);
-	        };
-	      })(props.properties["class"]);
-	      (function(p) {
-	        if (p._bind != null) {
-	          process_bind($e, p._bind);
-	          return delete p._bind;
-	        }
-	      })(props.properties);
-	      (function(p) {
-	        if (p._html != null) {
-	          undos.push(rsub_now(p._html, function(v) {
-	            return $e.html(v);
-	          }));
-	          return delete p._html;
-	        }
-	      })(props.properties);
-	      if (props.properties._onclick != null) {
-	        (function(h) {
-	          var _base;
-	          if ($e[0].tagName === 'A') {
-	            if ((_base = props.properties).href == null) {
-	              _base.href = '#';
-	            }
-	            return props.listeners.click = function(e) {
-	              e.preventDefault();
-	              return h();
-	            };
-	          } else {
-	            return props.listeners.click = function(e) {
-	              return h();
-	            };
-	          }
-	        })(props.properties._onclick);
-	        delete props.properties._onclick;
-	      }
-	      ut.kv(props.listeners, function(event, handler) {
-	        $e.on(event, handler);
-	        return undos.push(function() {
-	          return $e.off(event, handler);
-	        });
-	      });
-	      ut.kv(props.properties, function(prop, value) {
-	        $e.prop(prop, reactive_snapshot);
-	        return undos.push(rsub_now(value, function(v) {
-	          return $e.prop(prop, v);
-	        }));
-	      });
-	      ut.kkv(props.watchers, function(prop, event, handler) {
-	        var iv;
-	        if (event === '_poll') {
-	          iv = setInterval((function() {
-	            return handler.handler($e.prop(prop));
-	          }), 300);
-	          return function() {
-	            return clearInterval(iv);
-	          };
-	        }
-	      });
-	      ut.kkv(props.watchers, function(prop, event, handler) {
-	        var binder, fn, react_stopper;
-	        if (event !== '_poll') {
-	          if (handler.bidirectional) {
-	            binder = bidibinder({
-	              get_a: function() {
-	                return handler.handler();
-	              },
-	              set_a: function(v) {
-	                return handler.handler(v);
-	              },
-	              get_b: function() {
-	                return $e.prop(prop);
-	              },
-	              set_b: function(v) {
-	                return $e.prop(prop, v);
-	              }
-	            });
-	            react_stopper = radioactive.react(function() {
-	              return binder.touch_a();
-	            });
-	            $e.on(event, fn = function() {
-	              return binder.touch_b();
-	            });
-	            return function() {
-	              $e.off(event, fn);
-	              return react_stopper();
-	            };
-	          } else {
-	            $e.on(event, fn = function() {
-	              return handler.handler($e.prop(prop));
-	            });
-	            return function() {
-	              return $e.off(event, fn);
-	            };
-	          }
-	        }
-	      });
-	      ut.kv(props.styles, function(prop, value) {
-	        $e.css(prop, reactive_snapshot(value));
-	        return undos.push(rsub_now(value, function(v) {
-	          return $e.css(prop, v);
-	        }));
-	      });
-	      ut.kv(props.queries, function(k, v) {
-	        return undos.push(apply_query_tag($e, k, v));
-	      });
-	      return function() {
-	        var u, _i, _len, _results;
-	        _results = [];
-	        for (_i = 0, _len = undos.length; _i < _len; _i++) {
-	          u = undos[_i];
-	          _results.push(u());
-	        }
-	        return _results;
-	      };
-	    };
-	    process_bind = function($e, bind) {
-	      var cell, cell_is_origin, mutex, read_only, val_on_e;
-	      if (!is_func(bind)) {
-	        throw new Error('_bind requires a cell (function)');
-	      }
-	      read_only = bind.length === 0;
-	      cell_is_origin = true;
-	      cell = bind;
-	      mutex = false;
-	      val_on_e = void 0;
-	      $e.on('change', function() {
-	        val_on_e = $e.val();
-	        return cell(val_on_e);
-	      });
-	      return $e.val();
-	    };
-	    create_html = function(head, props, content) {
-	      var $e, c, node, undos, _i, _len, _ref;
-	      undos = [];
-	      switch (head.tag) {
-	        case 'text':
-	          node = document.createTextNode('');
-	          switch (typeof content) {
-	            case 'function':
-	              undos.push(rsub(content, function(v) {
-	                return node.data = v;
-	              }));
-	              break;
-	            case 'string':
-	              node.data = content;
-	              break;
-	            case 'number':
-	              node.data = content.toString();
-	          }
-	          return node;
-	        default:
-	          if (!htmltags(head.tag)) {
-	            throw new Error('Unknown HTML tag: ' + head.tag);
-	          }
-	          $e = $('<' + head.tag + '>');
-	          if (head.id != null) {
-	            props.properties.id = head.id;
-	          }
-	          _ref = head.classes;
-	          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-	            c = _ref[_i];
-	            props.classflags[c] = true;
-	          }
-	          undos.push(apply_props_on_html_node($e, props));
-	          if (content != null) {
-	            undos.push(rsub_html_elm_content($e, content));
-	          }
-	          return $e[0];
-	      }
-	    };
-	    create_ext = function(head, props, content) {
-	      var c, clazz, component, config, html_func_property, p, pending_subscriptions, pending_watchers, undos, _i, _j, _len, _len1, _ref, _ref1;
-	      pending_subscriptions = [];
-	      pending_watchers = [];
-	      config = {};
-	      undos = [];
-	      clazz = xtype2class(head.tag.split('-').join('.'));
-	      if (head.id != null) {
-	        props.properties.id = head.id;
-	      }
-	      _ref = head.classes;
-	      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-	        c = _ref[_i];
-	        props.classflags[c] = true;
-	      }
-	      props.properties.cls = (function(c) {
-	        return function() {
-	          return merge_css_classes([], c, props.classflags);
-	        };
-	      })(props.properties.cls);
-	      if (props.listeners != null) {
-	        config.listeners = props.listeners;
-	      }
-
-	      /*
-	      TODO: accept objects with more options
-	          tap:
-	            fn: -> @hide()
-	            single: true
-	            scope: @
-	       */
-	      ut.kkv(props.watchers, function(prop, event, handler) {
-	        if (event === '_poll') {
-	          return pending_watchers.push(function(comp) {
-	            var getter, intv;
-	            getter = ut.getter(prop);
-	            intv = setInterval((function() {
-	              return handler(comp[getter]());
-	            }), 300);
-	            return function() {
-	              return clearInterval(intv);
-	            };
-	          });
-	        }
-	      });
-	      ut.kkv(props.watchers, function(prop, event, handler) {
-	        if (event !== '_poll') {
-	          return pending_watchers.push(function(comp) {
-	            var fn, getter;
-	            getter = ut.getter(prop);
-	            comp.on(event, fn = function() {
-	              return handler(comp[getter]());
-	            });
-	            return function() {
-	              return comp.un(event, fn);
-	            };
-	          });
-	        }
-	      });
-	      if (is_func(props.properties.html)) {
-	        html_func_property = props.properties.html;
-	        props.properties.html = '<div></div>';
-	      }
-	      ut.kv(props.properties, function(prop, value) {
-	        var r;
-	        if (!is_func(value)) {
-	          return config[prop] = value;
-	        } else {
-	          r = rrun(value);
-	          log_err(r.error);
-	          config[prop] = r.result;
-	          if (r.monitor != null) {
-	            return pending_subscriptions.push(function(comp) {
-	              var setter;
-	              setter = ut.setter(prop);
-	              if (typeof comp[setter] === 'function') {
-	                return rsub(value, function(r) {
-	                  return comp[setter](r);
-	                });
-	              } else {
-	                return console.warn("Ext Component " + comp.$className + " has no setter for property '" + prop + "' and\n  you are passing a reactive function as value.\n  The value won't be updated even if it changes later on.");
-	              }
-	            });
-	          }
-	        }
-	      });
-	      if (is_func(content)) {
-	        (function() {
-	          var res;
-	          res = rrun(function() {
-	            return collector.run(content);
-	          });
-	          log_err(res.error);
-	          config.items = [];
-	          if (res.result instanceof Array) {
-	            config.items = res.result.slice(0, -1);
-	          }
-	          if (res.monitor != null) {
-	            return pending_subscriptions.push(function(comp) {
-	              return rsub((function() {
-	                return collector.run(content);
-	              }), function(r) {
-	                return comp.setItems(r.slice(0, -1));
-	              });
-	            });
-	          }
-	        })();
-	      }
-	      component = Ext().create(clazz, config);
-	      if (!ut.obj_empty(props.queries)) {
-	        (function() {
-	          var undo_func;
-	          undo_func = null;
-	          undos.push(function() {
-	            return typeof undo_func === "function" ? undo_func() : void 0;
-	          });
-	          return ext_get_component_element(component, function(elm) {
-	            return ut.kv(props.queries, function(k, v) {
-	              return undo_func = apply_query_tag($(elm.dom), k, v);
-	            });
-	          });
-	        })();
-	      }
-	      (function() {
-	        var undo_func;
-	        undo_func = null;
-	        undos.push(function() {
-	          return typeof undo_func === "function" ? undo_func() : void 0;
-	        });
-	        return ext_get_component_element(component, function(elm) {
-	          return ut.kv(props.styles, function(name, value) {
-	            var $elm;
-	            $elm = $(elm.dom);
-	            return undo_func = rsub(value, function(v) {
-	              return $elm.css(name, value);
-	            });
-	          });
-	        });
-	      })();
-	      if (html_func_property != null) {
-	        (function() {
-	          var undo_func;
-	          undo_func = null;
-	          undos.push(function() {
-	            return typeof undo_func === "function" ? undo_func() : void 0;
-	          });
-	          return ext_comp_innerhtml(component, function(elm) {
-	            return undo_func = rsub_html_elm_content(elm, html_func_property);
-	          });
-	        })();
-	      }
-	      _ref1 = pending_subscriptions.concat(pending_watchers);
-	      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-	        p = _ref1[_j];
-	        undos.push(p(component));
-	      }
-	      if (collector.defined()) {
-	        collector(component);
-	      }
-	      component.on('destroy', function() {
-	        var u, _k, _len2, _results;
-	        _results = [];
-	        for (_k = 0, _len2 = undos.length; _k < _len2; _k++) {
-	          u = undos[_k];
-	          _results.push(u());
-	        }
-	        return _results;
-	      });
-	      return component;
-	    };
-	    apply_query_tag = function($elm, query, raw_props) {
-	      var undos;
-	      undos = [];
-	      if (query === '__empty__') {
-	        return undos.push(apply_props_on_html_node($elm, tpp(raw_props)));
-	      } else {
-	        helpers.jquery_find_watch(query, $elm, function(added, removed) {
-	          console.log('added', added);
-	          return console.log('removed', removed);
-	        });
-	        return function() {};
-	      }
-	    };
-	    rsub_html_elm_content = function(domnode, content) {
-	      var elm, reset_content, set_content;
-	      elm = $(domnode);
-	      reset_content = function() {
-	        if (elm.text() != null) {
-	          elm.text('');
-	        }
-	        return elm.children().remove();
-	      };
-	      set_content = function(c) {
-	        var x, _i, _len, _results;
-	        if (!(c instanceof Array)) {
-	          return set_content([c]);
-	        }
-	        reset_content();
-	        c = c.concat();
-	        if (c.length > 1) {
-	          c.pop();
-	        }
-	        c = ut.collapse_arr(c);
-	        if (c.length === 0) {
-	          return;
-	        }
-	        _results = [];
-	        for (_i = 0, _len = c.length; _i < _len; _i++) {
-	          x = c[_i];
-	          _results.push((function(x) {
-	            switch (typeof x) {
-	              case 'string':
-	                return elm.text(x);
-	              case 'number':
-	                return elm.text(x + '');
-	              case 'object':
-	                if (helpers.is_dom_node(x)) {
-	                  return elm.append(x);
-	                } else if (helpers.is_jquery_obj(x)) {
-	                  return elm.append(x);
-	                } else if (helpers.is_ext_component(x)) {
-	                  if (x.getHeight() === null) {
-	                    console.warn("When adding an Ext component as child to a DOM node\nYou need to set height manually\n( it won't participate in the framework's layout )");
-	                  }
-	                  return elm.append(x.element.dom);
-	                } else {
-	                  return console.error("Don't know how to add this child to a DOMNode ", x);
-	                }
-	            }
-	          })(x));
-	        }
-	        return _results;
-	      };
-	      if (is_func(content)) {
-	        return rsub((function() {
-	          return collector.run(content);
-	        }), set_content);
-	      } else {
-	        return set_content(content);
-	      }
-	    };
-	    String.prototype._ = function() {
-	      var do_collect, do_return, ret, str;
-	      str = this + '';
-	      if (str === '') {
-	        str = 'ra:insert';
-	      }
-	      do_collect = collector.defined();
-	      do_return = !collector.defined();
-	      if (str.indexOf('<<') === 0) {
-	        str = str.substring(2);
-	        do_collect = true;
-	        do_return = true;
-	      } else if (str.indexOf('<') === 0) {
-	        str = str.substring(1);
-	        do_collect = false;
-	        do_return = true;
-	      }
-	      do_return = true;
-	      ret = declare_tag_rec(str, ut.arr(arguments), !do_collect);
-	      if (do_return) {
-	        if (ret instanceof Array) {
-	          return ret[0];
-	        } else {
-	          return ret;
-	        }
-	      } else {
-	        return void 0;
-	      }
-	    };
-	    declare_insert_tag = function(args) {
-	      var e, res, x, _i, _len;
-	      if (args.length !== 1) {
-	        throw new Error('insert tag takes exactly one argument');
-	      }
-	      e = args[0];
-	      if (!(e instanceof Array)) {
-	        e = [e];
-	      }
-	      for (_i = 0, _len = e.length; _i < _len; _i++) {
-	        x = e[_i];
-	        collector(res = is_func(x) ? x() : x);
-	      }
-	      res;
-	      return void 0;
-	    };
-	    declare_tag_rec = function(head, args, dont_collect) {
-	      if (dont_collect == null) {
-	        dont_collect = false;
-	      }
-	      if (!(head instanceof Array)) {
-	        head = head.split(' ');
-	      }
-	      return declare_tag(head.shift(), (head.length === 0 ? args : [
-	        function() {
-	          return declare_tag_rec(head, args);
-	        }
-	      ]), dont_collect);
-	    };
-	    declare_tag = function(head_str, args, dont_collect) {
-	      var content, head, n, ns, props, ta2pc, _ref;
-	      if (dont_collect == null) {
-	        dont_collect = false;
-	      }
-	      ta2pc = tag_args_to_props_and_content;
-	      head_str = head_str.trim();
-	      head = rthp(head_str);
-	      ns = head.ns || 'html';
-	      if (ns === 'ra') {
-	        switch (head.tag) {
-	          case 'each':
-	            throw new Error('ra:each not implemented yet');
-	            break;
-	          case 'insert':
-	            return declare_insert_tag(args);
-	        }
-	      } else {
-	        _ref = ta2pc(args), props = _ref.props, content = _ref.content;
-	        props = tpp(props);
-	        switch (ns) {
-	          case 'html':
-	            n = create_html(head, props, content);
-	            if (collector.defined() && (!dont_collect)) {
-	              collector(n);
-	            }
-	            return n;
-	          case 'ext':
-	            return create_ext(head, props, content);
-	          default:
-	            throw new Error('unrecognized namespace ' + ns);
-	        }
-	      }
-	    };
-	    xtype2class = function(t) {
-	      if (t.indexOf(".") === -1) {
-	        return xtypes[t];
-	      } else {
-	        return t;
-	      }
-	    };
-	    return {
-	      "export": function(context) {
-	        var tag, tags, _i, _len, _results;
-	        tags = 'a p'.split(' ');
-	        _results = [];
-	        for (_i = 0, _len = tags.length; _i < _len; _i++) {
-	          tag = tags[_i];
-	          _results.push((function(tag) {
-	            return context[tag.toUpperCase()] = function() {
-	              return String.prototype._.apply(tag, arguments);
-	            };
-	          })(tag));
-	        }
-	        return _results;
-	      }
-	    };
-	  };
-
-	}).call(this);
-
-
-/***/ },
-/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {// Generated by CoffeeScript 1.7.1
@@ -4054,6 +3454,671 @@
 	}).call(this);
 	
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+
+/***/ },
+/* 4 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// Generated by CoffeeScript 1.8.0
+	(function() {
+	  module.exports = function(radioactive, jQuery, document) {
+	    var $, apply_props_on_html_node, apply_query_tag, bidibinder, collector, create_collector, create_ext, create_html, cssc, declare_insert_tag, declare_tag, declare_tag_rec, delay, env, ext_comp_innerhtml, ext_get_component_element, helpers, htmltags, interval, is_func, log_err, merge_css_classes, process_bind, reactive_snapshot, rrun, rsub, rsub_html_elm_content, rsub_now, rthp, tag_args_to_props_and_content, tpp, ut, xtype2class, xtypes;
+	    env = __webpack_require__(5);
+	    env.radioactive = function() {
+	      return radioactive;
+	    };
+	    env.jQuery = function() {
+	      return jQuery;
+	    };
+	    env.document = function() {
+	      return document;
+	    };
+	    $ = jQuery;
+	    htmltags = __webpack_require__(11);
+	    create_collector = __webpack_require__(12);
+	    ut = __webpack_require__(13);
+	    xtypes = __webpack_require__(14);
+	    rthp = __webpack_require__(6);
+	    cssc = __webpack_require__(7);
+	    tpp = __webpack_require__(8);
+	    tag_args_to_props_and_content = __webpack_require__(9);
+	    bidibinder = __webpack_require__(15);
+	    helpers = __webpack_require__(10);
+	    interval = ut.interval;
+	    delay = ut.delay;
+	    rsub = function(v, cb) {
+	      if (is_func(v)) {
+	        return radioactive.react(v, function(e, r) {
+	          log_err(e);
+	          return cb(r);
+	        });
+	      } else {
+	        cb(v);
+	        return function() {};
+	      }
+	    };
+	    rsub_now = function(v, cb) {
+	      var r;
+	      r = rrun(v);
+	      cb(r.error, r.result);
+	      return rsub(v, cb);
+	    };
+	    rrun = function(f) {
+	      var e;
+	      try {
+	        return {
+	          result: radioactive.mute(f)()
+	        };
+	      } catch (_error) {
+	        e = _error;
+	        return {
+	          error: e
+	        };
+	      }
+	    };
+	    log_err = function(e) {
+	      ut.err(e);
+	      try {
+	        return window._last_error = e;
+	      } catch (_error) {}
+	    };
+	    reactive_snapshot = function(v) {
+	      if (is_func(v)) {
+	        return radioactive.mute(v)();
+	      } else {
+	        return v;
+	      }
+	    };
+	    is_func = function(v) {
+	      return typeof v === 'function';
+	    };
+	    collector = create_collector();
+	    merge_css_classes = function(head_classes, inline_class_decl, classflags) {
+	      var merged, mfcs;
+	      mfcs = [];
+	      if (head_classes.length > 0) {
+	        mfcs.push([head_classes, true]);
+	      }
+	      if (inline_class_decl != null) {
+	        mfcs.push([inline_class_decl, true]);
+	      }
+	      ut.kv(classflags, function(clazz, flag) {
+	        return mfcs.push([clazz, flag]);
+	      });
+	      merged = cssc.mfc(mfcs);
+	      merged = merged.sort();
+	      return merged.join(' ');
+	    };
+	    ext_comp_innerhtml = function(comp, cb) {
+	      return ut.delay(1, function() {
+	        var key, xxx;
+	        key = '___innerhtml___';
+	        if (comp[key] != null) {
+	          return cb(comp[key]);
+	        } else {
+	          return (xxx = function() {
+	            var $elm;
+	            try {
+	              if (($elm = $(comp.element.dom).find('.x-innerhtml')) != null) {
+	                if ($elm[0] != null) {
+	                  cb(comp[key] = $elm[0]);
+	                  return;
+	                }
+	              }
+	            } catch (_error) {}
+	            return ut.delay(100, xxx);
+	          })();
+	        }
+	      });
+	    };
+	    ext_get_component_element = function(c, cb) {
+	      return ut.delay(1, function() {
+	        var f;
+	        if (c.element != null) {
+	          return cb(c.element);
+	        }
+	        return c.on('initialize', f = function() {
+	          cb(c.element);
+	          return c.un('initialize', f);
+	        });
+	      });
+	    };
+	    apply_props_on_html_node = function($e, props) {
+	      var undos;
+	      undos = [];
+	      props.properties["class"] = (function(c) {
+	        return function() {
+	          return merge_css_classes([], c, props.classflags);
+	        };
+	      })(props.properties["class"]);
+	      (function(p) {
+	        if (p._bind != null) {
+	          process_bind($e, p._bind);
+	          return delete p._bind;
+	        }
+	      })(props.properties);
+	      (function(p) {
+	        if (p._html != null) {
+	          undos.push(rsub_now(p._html, function(v) {
+	            return $e.html(v);
+	          }));
+	          return delete p._html;
+	        }
+	      })(props.properties);
+	      if (props.properties._onclick != null) {
+	        (function(h) {
+	          var _base;
+	          if ($e[0].tagName === 'A') {
+	            if ((_base = props.properties).href == null) {
+	              _base.href = '#';
+	            }
+	            return props.listeners.click = function(e) {
+	              e.preventDefault();
+	              return h();
+	            };
+	          } else {
+	            return props.listeners.click = function(e) {
+	              return h();
+	            };
+	          }
+	        })(props.properties._onclick);
+	        delete props.properties._onclick;
+	      }
+	      ut.kv(props.listeners, function(event, handler) {
+	        $e.on(event, handler);
+	        return undos.push(function() {
+	          return $e.off(event, handler);
+	        });
+	      });
+	      ut.kv(props.properties, function(prop, value) {
+	        $e.prop(prop, reactive_snapshot);
+	        return undos.push(rsub_now(value, function(v) {
+	          return $e.prop(prop, v);
+	        }));
+	      });
+	      ut.kkv(props.watchers, function(prop, event, handler) {
+	        var iv;
+	        if (event === '_poll') {
+	          iv = setInterval((function() {
+	            return handler.handler($e.prop(prop));
+	          }), 300);
+	          return function() {
+	            return clearInterval(iv);
+	          };
+	        }
+	      });
+	      ut.kkv(props.watchers, function(prop, event, handler) {
+	        var binder, fn, react_stopper;
+	        if (event !== '_poll') {
+	          if (handler.bidirectional) {
+	            binder = bidibinder({
+	              get_a: function() {
+	                return handler.handler();
+	              },
+	              set_a: function(v) {
+	                return handler.handler(v);
+	              },
+	              get_b: function() {
+	                return $e.prop(prop);
+	              },
+	              set_b: function(v) {
+	                return $e.prop(prop, v);
+	              }
+	            });
+	            react_stopper = radioactive.react(function() {
+	              return binder.touch_a();
+	            });
+	            $e.on(event, fn = function() {
+	              return binder.touch_b();
+	            });
+	            return function() {
+	              $e.off(event, fn);
+	              return react_stopper();
+	            };
+	          } else {
+	            $e.on(event, fn = function() {
+	              return handler.handler($e.prop(prop));
+	            });
+	            return function() {
+	              return $e.off(event, fn);
+	            };
+	          }
+	        }
+	      });
+	      ut.kv(props.styles, function(prop, value) {
+	        $e.css(prop, reactive_snapshot(value));
+	        return undos.push(rsub_now(value, function(v) {
+	          return $e.css(prop, v);
+	        }));
+	      });
+	      ut.kv(props.queries, function(k, v) {
+	        return undos.push(apply_query_tag($e, k, v));
+	      });
+	      return function() {
+	        var u, _i, _len, _results;
+	        _results = [];
+	        for (_i = 0, _len = undos.length; _i < _len; _i++) {
+	          u = undos[_i];
+	          _results.push(u());
+	        }
+	        return _results;
+	      };
+	    };
+	    process_bind = function($e, bind) {
+	      var cell, cell_is_origin, mutex, read_only, val_on_e;
+	      if (!is_func(bind)) {
+	        throw new Error('_bind requires a cell (function)');
+	      }
+	      read_only = bind.length === 0;
+	      cell_is_origin = true;
+	      cell = bind;
+	      mutex = false;
+	      val_on_e = void 0;
+	      $e.on('change', function() {
+	        val_on_e = $e.val();
+	        return cell(val_on_e);
+	      });
+	      return $e.val();
+	    };
+	    create_html = function(head, props, content) {
+	      var $e, c, node, undos, _i, _len, _ref;
+	      undos = [];
+	      switch (head.tag) {
+	        case 'text':
+	          node = document.createTextNode('');
+	          switch (typeof content) {
+	            case 'function':
+	              undos.push(rsub(content, function(v) {
+	                return node.data = v;
+	              }));
+	              break;
+	            case 'string':
+	              node.data = content;
+	              break;
+	            case 'number':
+	              node.data = content.toString();
+	          }
+	          return node;
+	        default:
+	          if (!htmltags(head.tag)) {
+	            throw new Error('Unknown HTML tag: ' + head.tag);
+	          }
+	          $e = $('<' + head.tag + '>');
+	          if (head.id != null) {
+	            props.properties.id = head.id;
+	          }
+	          _ref = head.classes;
+	          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+	            c = _ref[_i];
+	            props.classflags[c] = true;
+	          }
+	          undos.push(apply_props_on_html_node($e, props));
+	          if (content != null) {
+	            undos.push(rsub_html_elm_content($e, content));
+	          }
+	          return $e[0];
+	      }
+	    };
+	    create_ext = function(head, props, content) {
+	      var c, clazz, component, config, html_func_property, p, pending_subscriptions, pending_watchers, undos, _i, _j, _len, _len1, _ref, _ref1;
+	      pending_subscriptions = [];
+	      pending_watchers = [];
+	      config = {};
+	      undos = [];
+	      clazz = xtype2class(head.tag.split('-').join('.'));
+	      if (head.id != null) {
+	        props.properties.id = head.id;
+	      }
+	      _ref = head.classes;
+	      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+	        c = _ref[_i];
+	        props.classflags[c] = true;
+	      }
+	      props.properties.cls = (function(c) {
+	        return function() {
+	          return merge_css_classes([], c, props.classflags);
+	        };
+	      })(props.properties.cls);
+	      if (props.listeners != null) {
+	        config.listeners = props.listeners;
+	      }
+
+	      /*
+	      TODO: accept objects with more options
+	          tap:
+	            fn: -> @hide()
+	            single: true
+	            scope: @
+	       */
+	      ut.kkv(props.watchers, function(prop, event, handler) {
+	        if (event === '_poll') {
+	          return pending_watchers.push(function(comp) {
+	            var getter, intv;
+	            getter = ut.getter(prop);
+	            intv = setInterval((function() {
+	              return handler(comp[getter]());
+	            }), 300);
+	            return function() {
+	              return clearInterval(intv);
+	            };
+	          });
+	        }
+	      });
+	      ut.kkv(props.watchers, function(prop, event, handler) {
+	        if (event !== '_poll') {
+	          return pending_watchers.push(function(comp) {
+	            var fn, getter;
+	            getter = ut.getter(prop);
+	            comp.on(event, fn = function() {
+	              return handler(comp[getter]());
+	            });
+	            return function() {
+	              return comp.un(event, fn);
+	            };
+	          });
+	        }
+	      });
+	      if (is_func(props.properties.html)) {
+	        html_func_property = props.properties.html;
+	        props.properties.html = '<div></div>';
+	      }
+	      ut.kv(props.properties, function(prop, value) {
+	        var r;
+	        if (!is_func(value)) {
+	          return config[prop] = value;
+	        } else {
+	          r = rrun(value);
+	          log_err(r.error);
+	          config[prop] = r.result;
+	          if (r.monitor != null) {
+	            return pending_subscriptions.push(function(comp) {
+	              var setter;
+	              setter = ut.setter(prop);
+	              if (typeof comp[setter] === 'function') {
+	                return rsub(value, function(r) {
+	                  return comp[setter](r);
+	                });
+	              } else {
+	                return console.warn("Ext Component " + comp.$className + " has no setter for property '" + prop + "' and\n  you are passing a reactive function as value.\n  The value won't be updated even if it changes later on.");
+	              }
+	            });
+	          }
+	        }
+	      });
+	      if (is_func(content)) {
+	        (function() {
+	          var res;
+	          res = rrun(function() {
+	            return collector.run(content);
+	          });
+	          log_err(res.error);
+	          config.items = [];
+	          if (res.result instanceof Array) {
+	            config.items = res.result.slice(0, -1);
+	          }
+	          if (res.monitor != null) {
+	            return pending_subscriptions.push(function(comp) {
+	              return rsub((function() {
+	                return collector.run(content);
+	              }), function(r) {
+	                return comp.setItems(r.slice(0, -1));
+	              });
+	            });
+	          }
+	        })();
+	      }
+	      component = Ext().create(clazz, config);
+	      if (!ut.obj_empty(props.queries)) {
+	        (function() {
+	          var undo_func;
+	          undo_func = null;
+	          undos.push(function() {
+	            return typeof undo_func === "function" ? undo_func() : void 0;
+	          });
+	          return ext_get_component_element(component, function(elm) {
+	            return ut.kv(props.queries, function(k, v) {
+	              return undo_func = apply_query_tag($(elm.dom), k, v);
+	            });
+	          });
+	        })();
+	      }
+	      (function() {
+	        var undo_func;
+	        undo_func = null;
+	        undos.push(function() {
+	          return typeof undo_func === "function" ? undo_func() : void 0;
+	        });
+	        return ext_get_component_element(component, function(elm) {
+	          return ut.kv(props.styles, function(name, value) {
+	            var $elm;
+	            $elm = $(elm.dom);
+	            return undo_func = rsub(value, function(v) {
+	              return $elm.css(name, value);
+	            });
+	          });
+	        });
+	      })();
+	      if (html_func_property != null) {
+	        (function() {
+	          var undo_func;
+	          undo_func = null;
+	          undos.push(function() {
+	            return typeof undo_func === "function" ? undo_func() : void 0;
+	          });
+	          return ext_comp_innerhtml(component, function(elm) {
+	            return undo_func = rsub_html_elm_content(elm, html_func_property);
+	          });
+	        })();
+	      }
+	      _ref1 = pending_subscriptions.concat(pending_watchers);
+	      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+	        p = _ref1[_j];
+	        undos.push(p(component));
+	      }
+	      if (collector.defined()) {
+	        collector(component);
+	      }
+	      component.on('destroy', function() {
+	        var u, _k, _len2, _results;
+	        _results = [];
+	        for (_k = 0, _len2 = undos.length; _k < _len2; _k++) {
+	          u = undos[_k];
+	          _results.push(u());
+	        }
+	        return _results;
+	      });
+	      return component;
+	    };
+	    apply_query_tag = function($elm, query, raw_props) {
+	      var undos;
+	      undos = [];
+	      if (query === '__empty__') {
+	        return undos.push(apply_props_on_html_node($elm, tpp(raw_props)));
+	      } else {
+	        helpers.jquery_find_watch(query, $elm, function(added, removed) {
+	          console.log('added', added);
+	          return console.log('removed', removed);
+	        });
+	        return function() {};
+	      }
+	    };
+	    rsub_html_elm_content = function(domnode, content) {
+	      var elm, reset_content, set_content;
+	      elm = $(domnode);
+	      reset_content = function() {
+	        if (elm.text() != null) {
+	          elm.text('');
+	        }
+	        return elm.children().remove();
+	      };
+	      set_content = function(c) {
+	        var x, _i, _len, _results;
+	        if (!(c instanceof Array)) {
+	          return set_content([c]);
+	        }
+	        reset_content();
+	        c = c.concat();
+	        if (c.length > 1) {
+	          c.pop();
+	        }
+	        c = ut.collapse_arr(c);
+	        if (c.length === 0) {
+	          return;
+	        }
+	        _results = [];
+	        for (_i = 0, _len = c.length; _i < _len; _i++) {
+	          x = c[_i];
+	          _results.push((function(x) {
+	            switch (typeof x) {
+	              case 'string':
+	                return elm.text(x);
+	              case 'number':
+	                return elm.text(x + '');
+	              case 'object':
+	                if (helpers.is_dom_node(x)) {
+	                  return elm.append(x);
+	                } else if (helpers.is_jquery_obj(x)) {
+	                  return elm.append(x);
+	                } else if (helpers.is_ext_component(x)) {
+	                  if (x.getHeight() === null) {
+	                    console.warn("When adding an Ext component as child to a DOM node\nYou need to set height manually\n( it won't participate in the framework's layout )");
+	                  }
+	                  return elm.append(x.element.dom);
+	                } else {
+	                  return console.error("Don't know how to add this child to a DOMNode ", x);
+	                }
+	            }
+	          })(x));
+	        }
+	        return _results;
+	      };
+	      if (is_func(content)) {
+	        return rsub((function() {
+	          return collector.run(content);
+	        }), set_content);
+	      } else {
+	        return set_content(content);
+	      }
+	    };
+	    String.prototype._ = function() {
+	      var do_collect, do_return, ret, str;
+	      str = this + '';
+	      if (str === '') {
+	        str = 'ra:insert';
+	      }
+	      do_collect = collector.defined();
+	      do_return = !collector.defined();
+	      if (str.indexOf('<<') === 0) {
+	        str = str.substring(2);
+	        do_collect = true;
+	        do_return = true;
+	      } else if (str.indexOf('<') === 0) {
+	        str = str.substring(1);
+	        do_collect = false;
+	        do_return = true;
+	      }
+	      do_return = true;
+	      ret = declare_tag_rec(str, ut.arr(arguments), !do_collect);
+	      if (do_return) {
+	        if (ret instanceof Array) {
+	          return ret[0];
+	        } else {
+	          return ret;
+	        }
+	      } else {
+	        return void 0;
+	      }
+	    };
+	    declare_insert_tag = function(args) {
+	      var e, res, x, _i, _len;
+	      if (args.length !== 1) {
+	        throw new Error('insert tag takes exactly one argument');
+	      }
+	      e = args[0];
+	      if (!(e instanceof Array)) {
+	        e = [e];
+	      }
+	      for (_i = 0, _len = e.length; _i < _len; _i++) {
+	        x = e[_i];
+	        collector(res = is_func(x) ? x() : x);
+	      }
+	      res;
+	      return void 0;
+	    };
+	    declare_tag_rec = function(head, args, dont_collect) {
+	      if (dont_collect == null) {
+	        dont_collect = false;
+	      }
+	      if (!(head instanceof Array)) {
+	        head = head.split(' ');
+	      }
+	      return declare_tag(head.shift(), (head.length === 0 ? args : [
+	        function() {
+	          return declare_tag_rec(head, args);
+	        }
+	      ]), dont_collect);
+	    };
+	    declare_tag = function(head_str, args, dont_collect) {
+	      var content, head, n, ns, props, ta2pc, _ref;
+	      if (dont_collect == null) {
+	        dont_collect = false;
+	      }
+	      ta2pc = tag_args_to_props_and_content;
+	      head_str = head_str.trim();
+	      head = rthp(head_str);
+	      ns = head.ns || 'html';
+	      if (ns === 'ra') {
+	        switch (head.tag) {
+	          case 'each':
+	            throw new Error('ra:each not implemented yet');
+	            break;
+	          case 'insert':
+	            return declare_insert_tag(args);
+	        }
+	      } else {
+	        _ref = ta2pc(args), props = _ref.props, content = _ref.content;
+	        props = tpp(props);
+	        switch (ns) {
+	          case 'html':
+	            n = create_html(head, props, content);
+	            if (collector.defined() && (!dont_collect)) {
+	              collector(n);
+	            }
+	            return n;
+	          case 'ext':
+	            return create_ext(head, props, content);
+	          default:
+	            throw new Error('unrecognized namespace ' + ns);
+	        }
+	      }
+	    };
+	    xtype2class = function(t) {
+	      if (t.indexOf(".") === -1) {
+	        return xtypes[t];
+	      } else {
+	        return t;
+	      }
+	    };
+	    return {
+	      "export": function(context) {
+	        var tag, tags, _i, _len, _results;
+	        tags = 'a p'.split(' ');
+	        _results = [];
+	        for (_i = 0, _len = tags.length; _i < _len; _i++) {
+	          tag = tags[_i];
+	          _results.push((function(tag) {
+	            return context[tag.toUpperCase()] = function() {
+	              return String.prototype._.apply(tag, arguments);
+	            };
+	          })(tag));
+	        }
+	        return _results;
+	      }
+	    };
+	  };
+
+	}).call(this);
+
 
 /***/ },
 /* 5 */
